@@ -8,6 +8,7 @@ from src.agents.contextualization_agent import ContextualizationAgent
 from src.agents.extraction_agent import ExtractionAgent
 from src.image_parser import parse_contract_image
 from src.models import ContractChangeOutput
+from src.cli import run_interactive_menu
 
 load_dotenv()
 
@@ -71,41 +72,11 @@ def run_pipeline(original_path: str, amendment_path:str) -> ContractChangeOutput
         original_text, amendment_text, context_map
     )
 
+    langfuse.flush()
     return result
 
 def main():
-    parser = argparse.ArgumentParse(
-        description="Pipeline Multimodal de Analisis de Contratos y Enmiendas"
-    )
-    parser.add_argument(
-        "--original",
-        type=str,
-        required=True,
-        help="Ruta de la imagen del contrato original",
-    )
-    parser.add_argument(
-        "--amendment",
-        type=str,
-        required=True,
-        help="Ruta de la imagen de la enmienda",
-    )
-
-    args = parser.parse_args()
-
-    try: 
-        resultado = run_pipeline(args.original, args.amendment)
-
-        print("\n================ RESULTADO FINAL ================")
-        print(f"Secciones modificadas:\n  {resultado.sections_changed}\n")
-        print(f"Tópicos afectados:\n  {resultado.topics_touched}\n")
-        print(f"Resumen del cambio:\n  {resultado.summary_of_the_change}")
-        print("=================================================\n")
-
-        langfuse.flush()
-
-    except Exception as e:
-        print(f"\n❌ Error durante la ejecución del pipeline: {e}", file=sys.stderr)
-        sys.exit(1)
+    run_interactive_menu(pipeline_runner=run_pipeline)
 
 
 if __name__ == "__main__":

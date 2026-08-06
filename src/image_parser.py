@@ -4,7 +4,7 @@ import os
 from openai import OpenAI
 from src.prompts import VISION_OCR_PROMPT
 
-client = OpenAI
+
 
 def encode_image_to_base64(image_path: str) -> tuple[str, str]:
     """Valida la existencia de la imagen y la codifica a base64 junto con su MIME type"""
@@ -23,6 +23,7 @@ def encode_image_to_base64(image_path: str) -> tuple[str, str]:
 def parse_contract_image(image_path: str) -> str:
     """Lee una imagen de contrato/enmienda y extrae su texto completo mediante GPT-4o"""
     base64_image, mime_type = encode_image_to_base64(image_path)
+    client = OpenAI()
 
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -42,3 +43,5 @@ def parse_contract_image(image_path: str) -> str:
         ],
         temperature=0.2
     )
+
+    return response.choices[0].message.content or ""

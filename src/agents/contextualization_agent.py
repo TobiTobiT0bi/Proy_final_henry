@@ -1,5 +1,5 @@
 from openai import OpenAI
-from src.prompts import CONTEXTUALIZATION_SYSTEM_PROMPT
+from src.prompts import CONTEXTUALIZATION_SYSTEM_PROMPT, CONTEXTUALIZATION_USER_TEMPLATE
 
 class ContextualizationAgent:
 
@@ -8,7 +8,7 @@ class ContextualizationAgent:
         self.model_name = model_name
 
     def run(self, original_text: str, amendment_text: str) -> str:
-        user_prompt = "hola"
+        user_prompt = CONTEXTUALIZATION_USER_TEMPLATE
 
         response = self.client.chat.completions.create(
             model=self.model_name,

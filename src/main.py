@@ -1,5 +1,3 @@
-import argparse
-import sys
 import langfuse
 from dotenv import load_dotenv
 from langfuse import observe

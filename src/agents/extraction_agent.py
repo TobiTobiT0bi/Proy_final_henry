@@ -18,5 +18,11 @@ class ExtractionAgent:
             response_format=ContractChangeOutput,
             temperature=0.0,
         )
+        choice = response.choices[0].message
 
-        return response.choices[0].message.parsed
+        if choice.refusal:
+            raise ValueError(f"El modelo rechazó procesar la solicitud: {choice.refusal}")
+        if not choice.parsed:
+            raise ValueError("El modelo no devolvió un objeto validado por Pydantic.")
+
+        return choice.parsed

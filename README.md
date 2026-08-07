@@ -77,7 +77,6 @@ Podés ejecutar el análisis sobre los contratos de prueba por defecto mediante 
 
 ```bash
 make run
-
 ```
 
 ### Salida esperada en consola:

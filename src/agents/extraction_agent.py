@@ -9,11 +9,18 @@ class ExtractionAgent:
         self.model_name = model_name
 
     def run(self, original_text: str, amendment_text: str, context_map: str) -> ContractChangeOutput:
+
+        user_content = EXTRACTION_USER_TEMPLATE.format(
+            context_map=context_map,
+            original_contract=original_text,
+            amendment_contract=amendment_text,
+        )
+
         response = self.client.beta.chat.completions.parse(
             model=self.model_name,
             messages=[
                 {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
-                {"role": "user", "content": EXTRACTION_USER_TEMPLATE},
+                {"role": "user", "content": user_content},
             ],
             response_format=ContractChangeOutput,
             temperature=0.0,

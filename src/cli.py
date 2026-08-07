@@ -31,6 +31,41 @@ def get_available_pairs() -> dict[str, tuple[str, str]]:
 
      return pairs
 
+def display_metrics(metrics: dict):
+     if metrics.get("valid"):
+          cat = metrics["selected_category"].upper()
+          console.print(
+               f"\n[bold magenta]🏷️  Tipo de Golden Case Seleccionado:[/bold magenta] [bold yellow]{cat}.json[/bold yellow]"
+               f"(Iterando sobre sus 5 casos internos)"
+          )
+
+          cases_table = Table(title=f"Evaluacion interna ({cat}.json)", show_header=True)
+          cases_table.add_column("Caso ID", style="cyan")
+          cases_table.add_column("Accuracy", style="yellow", justify="right")
+          cases_table.add_column("Completeness", style="green", justify="right")
+          
+          for case_item in metrics["cases_detailed"]:
+               cases_table.add_row(
+                    f"Case: {case_item['id']}",
+                    f"{case_item['accuracy']:.2f}",
+                    f"{case_item['completeness']:.2f}",
+               )
+
+          console.print(cases_table)
+
+          avg_acc = metrics["avg_accuracy"]
+          avg_comp = metrics["avg_completeness"]
+          console.print(
+            Panel(
+                f"[bold white]Resumen ({cat}.json):[/bold white] Accuracy Promedio [bold yellow]{avg_acc:.2f}[/bold yellow] | "
+                f"Completeness Promedio [bold green]{avg_comp:.2f}[/bold green]",
+                border_style="magenta",
+            )
+        )
+     else:
+        err_msg = metrics.get("error", "Error en evaluación")
+        console.print(Panel(f"[bold red]Evaluación Golden Cases:[/bold red] N/A ({err_msg})"))
+
 def display_results(result: ContractChangeOutput):
      """Muestra los resultados del análisis en tablas y paneles formateados."""
      console.print("\n")
@@ -40,7 +75,7 @@ def display_results(result: ContractChangeOutput):
 
      table = Table(title="Resultados estructurados", show_header=True)
      table.add_column("Propiedad", style="cyan", width=25)
-     table.add_column("Detalle / Valor", syle="white")
+     table.add_column("Detalle / Valor", style="white")
 
      table.add_row("Secciones modificadas", ", ".join(result.sections_changed))
      table.add_row("Tópicos afectados", ", ".join(result.topics_touched))
@@ -145,8 +180,9 @@ def run_interactive_menu(pipeline_runner):
                )
 
           try:
-               resultado = pipeline_runner(orig_path, amen_path)
+               resultado, metrics = pipeline_runner(orig_path, amen_path)
                display_results(resultado)
+               display_metrics(metrics)
 
           except Exception as e:
                console.print(

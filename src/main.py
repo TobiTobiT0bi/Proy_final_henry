@@ -1,4 +1,5 @@
-import langfuse
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
 from langfuse import observe, Langfuse
 
@@ -7,6 +8,7 @@ from src.agents.extraction_agent import ExtractionAgent
 from src.image_parser import parse_contract_image
 from src.models import ContractChangeOutput
 from src.cli import run_interactive_menu
+from src.evaluator import evaluate_with_best_archetype
 
 load_dotenv()
 langfuse_client = Langfuse()
@@ -37,6 +39,13 @@ def step_extract(original_text: str, amendment_text: str, context_map: str) -> C
 def run_pipeline(original_path: str, amendment_path:str) -> ContractChangeOutput:
     """Pipeline principal de instrumentado con un span/trace raiz de LangFuse"""
 
+    trace_id = None
+    try:
+        trace_id = langfuse_client.get_current_trace_id()
+        print(f"DEBUG: Trace ID capturado correctamente -> {trace_id}")
+    except Exception as e:
+        print(f"⚠️ No se pudo generar el Trace explícito: {e}")
+
     print("[1/4] Extrayendo texto del contrato original...")
     original_text = step_parse_original(original_path)
 
@@ -51,9 +60,15 @@ def run_pipeline(original_path: str, amendment_path:str) -> ContractChangeOutput
         original_text, amendment_text, context_map
     )
 
+    print("[EVAL] Evaluando output contra Golden Cases (standard, variant, boundary)...")
+    metrics = evaluate_with_best_archetype(
+        output=result,
+        trace_id=trace_id,
+    )
+
     langfuse_client.flush()
 
-    return result
+    return result, metrics
 
 def main():
     run_interactive_menu(pipeline_runner=run_pipeline)

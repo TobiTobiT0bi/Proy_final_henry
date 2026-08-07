@@ -60,10 +60,10 @@ Estructura sugerida para tu respuesta:
 CONTEXTUALIZATION_USER_TEMPLATE = """Efectúa el análisis de estructura comparada entre los siguientes dos textos contractuales:
 
 === CONTRATO ORIGINAL ===
-{original_text}
+{original_contract}
 
 === ENMIENDA / MODIFICACIÓN ===
-{amendment_text}
+{amendment_contract}
 
 Proporciona el mapa contextual de correspondencias y propósitos de cada sección."""
 
@@ -95,7 +95,7 @@ EXTRACTION_USER_TEMPLATE = """Utiliza el mapa contextual y los textos provistos 
 {context_map}
 
 === CONTRATO ORIGINAL ===
-{original_text}
+{original_contract}
 
 === ENMIENDA / MODIFICACIÓN ===
-{amendment_text}"""
+{amendment_contract}"""

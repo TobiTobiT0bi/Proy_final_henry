@@ -8,8 +8,40 @@ langfuse_client = Langfuse()
 CATEGORIES = ["standard", "variant", "boundary"]
 GOLDEN_DIR = Path("data/golden_cases")
 
+
+def _is_field_populated(value) -> bool:
+    """Verifica si GPT-4o Vision logró extraer un valor útil.
+
+    Devuelve False si el valor es None, lista/dict vacío, o un texto evasivo/nulo.
+    """
+    if value is None:
+        return False
+    if isinstance(value, (list, tuple, dict, set)):
+        return len(value) > 0
+    if isinstance(value, str):
+        cleaned = value.strip().lower()
+        null_responses = {
+            "",
+            "n/a",
+            "none",
+            "null",
+            "no especificado",
+            "sin información",
+            "unknown",
+            "no detectado",
+        }
+        return cleaned not in null_responses
+    if isinstance(value, (int, float, bool)):
+        return True
+    return False
+
+
 def _score_single_case(output_dict: dict, expected: dict) -> tuple[float, float]:
-    """Compara campo por campo omitiendo la llave 'id' del Golden Case."""
+    """Evalúa la tasa de extracción (Accuracy) y la presencia del esquema (Completeness).
+
+    - Accuracy: Proporción de campos esperados donde GPT-4o Vision extrajo información válida.
+    - Completeness: Proporción de claves del esquema presentes en el diccionario de salida.
+    """
     if not expected:
         return 0.0, 0.0
 
@@ -17,22 +49,25 @@ def _score_single_case(output_dict: dict, expected: dict) -> tuple[float, float]
     if not target_keys:
         return 0.0, 0.0
 
-    correct_fields = sum(
-        output_dict.get(k) == expected[k] for k in target_keys if k in output_dict
-    )
-    accuracy = correct_fields / len(target_keys)
+    keys_present = sum(1 for k in target_keys if k in output_dict)
+    completeness = keys_present / len(target_keys)
 
-    completeness = sum(k in output_dict for k in target_keys) / len(target_keys)
+    extracted_fields = sum(
+        1 for k in target_keys
+        if k in output_dict and _is_field_populated(output_dict[k])
+    )
+    accuracy = extracted_fields / len(target_keys)
 
     return accuracy, completeness
 
 
-def evaluate_with_best_archetype(output: ContractChangeOutput, trace_id: str) -> dict:
-    """
-    1. Carga cada uno de los 3 archivos JSON (standard.json, variant.json, boundary.json).
-    2. Evalúa la salida contra la lista de 5 casos contenida en cada archivo.
-    3. Selecciona el tipo de archivo con mayor afinidad e itera sobre sus 5 casos.
-    4. Envía métricas consolidadas a Langfuse.
+def evaluate_with_best_archetype(
+    output: ContractChangeOutput, trace_id: str | None = None
+) -> dict:
+    """1. Carga cada uno de los 3 archivos JSON (standard.json, variant.json, boundary.json).
+    2. Evalúa la capacidad de extracción de GPT-4o Vision en los 5 casos de cada archivo.
+    3. Selecciona la categoría relevante y genera las métricas consolidadas.
+    4. Envía métricas a Langfuse usando create_score().
     """
     output_dict = output.model_dump()
     category_results = {}
@@ -82,7 +117,6 @@ def evaluate_with_best_archetype(output: ContractChangeOutput, trace_id: str) ->
     selected_data = category_results[best_category]
 
     if trace_id:
-        print(f"subiendo scores con trace_id: {trace_id}")
         try:
             langfuse_client.create_score(
                 trace_id=trace_id,
@@ -98,15 +132,15 @@ def evaluate_with_best_archetype(output: ContractChangeOutput, trace_id: str) ->
             )
             langfuse_client.create_score(
                 trace_id=trace_id,
-                name=f"accuracy_{best_category}_avg",
+                name=f"extraction_rate_{best_category}_avg",
                 value=round(selected_data["avg_accuracy"], 2),
-                comment=f"Accuracy promedio iterado en los 5 casos de {best_category}.json",
+                comment=f"Tasa de extracción promedio en los 5 casos de {best_category}.json",
             )
             langfuse_client.create_score(
                 trace_id=trace_id,
                 name=f"completeness_{best_category}_avg",
                 value=round(selected_data["avg_completeness"], 2),
-                comment=f"Completeness promedio iterado en los 5 casos de {best_category}.json",
+                comment=f"Completeness promedio en los 5 casos de {best_category}.json",
             )
             langfuse_client.flush()
         except Exception as e:
@@ -120,4 +154,3 @@ def evaluate_with_best_archetype(output: ContractChangeOutput, trace_id: str) ->
         "cases_detailed": selected_data["cases"],
         "all_categories_summary": category_results,
     }
-

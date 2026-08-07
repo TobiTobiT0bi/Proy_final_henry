@@ -40,39 +40,33 @@ El pipeline procesa las imágenes en una secuencia de etapas desacopladas:
 6. **Integración Langfuse**: Instrumentación mediante decoradores `@observe` para trazabilidad jerárquica (spans, latencias, tokens) y envío de puntuaciones (`create_score`).
 
 ---
-
 ## 🚀 Requisitos Previos e Instalación
 
-Este proyecto utiliza [uv](https://github.com/astral-sh/uv) como gestor de paquetes de alto rendimiento en Python.
+Este proyecto utiliza **[uv](https://github.com/astral-sh/uv)** como gestor de paquetes de alto rendimiento en Python y **`make`** para simplificar la configuración y ejecución.
 
-### 1. Clonar el repositorio y configurar el entorno
+### 1. Setup Inicial
+
+Para configurar el entorno por primera vez tras clonar el repositorio, simplemente ejecutá:
+
 ```bash
-git clone <URL_DEL_REPOSITORIO>
-cd <NOMBRE_DEL_REPOSITORIO>
-
-# Crear entorno e instalar dependencias usando uv
-uv sync
+make setup
 
 ```
 
-*(Opcional: Si preferís pip tradicional, podés ejecutar `pip install -r requirements.txt`)*
+Este comando automatiza los siguientes pasos:
+
+* Crea el archivo `.env` a partir de `.env.example` (si no existe previa ejecución).
+* Sincroniza e instala todas las dependencias del proyecto usando `uv sync`.
 
 ### 2. Configurar Variables de Entorno
 
-Copiá el archivo de ejemplo `.env.example` a `.env` y completá con tus llaves de API:
-
-```bash
-cp .env.example .env
-
-```
-
-Configuración en `.env`:
+Antes de correr el pipeline, asegurate de cargar tus credenciales en el archivo `.env` recién creado:
 
 ```env
 OPENAI_API_KEY=sk-...
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...
-LANGFUSE_HOST=[https://cloud.langfuse.com](https://cloud.langfuse.com)
+LANGFUSE_HOST=https://cloud.langfuse.com
 
 ```
 
@@ -80,18 +74,18 @@ LANGFUSE_HOST=[https://cloud.langfuse.com](https://cloud.langfuse.com)
 
 ## 💻 Uso del Pipeline
 
-Para ejecutar el pipeline pasando dos rutas de imágenes de contrato como argumento:
+Podés ejecutar el análisis sobre los contratos de prueba por defecto mediante el comando:
 
 ```bash
-uv run python src/main.py data/test_contracts/documento_1__contrato.jpg data/test_contracts/documento_1__enmienda.jpg
+make run
 
 ```
 
 ### Salida esperada en consola:
 
-* Resumen formateado en consola con el tipo de contrato, cláusulas modificadas y el resumen del cambio.
-* Reporte detallado del `Evaluator` mostrando la Tasa de Extracción (*Accuracy*) y la cobertura (*Completeness*).
-* Enlace directo al Trace generado en el dashboard de **Langfuse**.
+* Resumen formateado con el tipo de contrato, cláusulas modificadas y la síntesis narrativa del cambio.
+* Reporte del `Evaluator` detallando las métricas de **Accuracy (Tasa de Extracción)** y **Completeness**.
+* Enlace directo al **Trace de Langfuse** para auditoría y observabilidad.
 
 ---
 

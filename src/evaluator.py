@@ -131,13 +131,15 @@ def evaluate_with_best_archetype(
             langfuse_client.create_score(
                 trace_id=trace_id,
                 name="pydantic_schema_valid",
-                value=1.0,
+                value=1,
+                data_type="BOOLEAN",
                 comment="Schema Pydantic válido",
             )
             langfuse_client.create_score(
                 trace_id=trace_id,
                 name="selected_golden_type",
-                value=1.0,
+                value=best_category,
+                data_type="CATEGORICAL",
                 comment=f"Tipo de archivo Golden seleccionado: {best_category}.json",
             )
             langfuse_client.create_score(

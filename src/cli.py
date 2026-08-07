@@ -107,7 +107,7 @@ def select_preset_pair_menu() -> tuple[str, str] | None:
           choices=choices,
      ).ask()
 
-     if not selection or selection == "⬅️ Volver atras":
+     if not selection or "Volver" in selection:
           return None
      
      prefix = selection.split(" ")[0]
@@ -169,6 +169,8 @@ def run_interactive_menu(pipeline_runner):
               console.print("[bold green]¡Hasta luego![/bold green]")
               sys.exit(0)
 
+          if paths is None:
+               continue
           if paths:
                orig_path, amen_path = paths
                clear_screen()

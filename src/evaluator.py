@@ -1,8 +1,13 @@
+import os
 import json
+from dotenv import load_dotenv
 from pathlib import Path
 from langfuse import Langfuse
 from src.models import ContractChangeOutput
 
+from langfuse import observe
+
+load_dotenv()
 langfuse_client = Langfuse()
 
 CATEGORIES = ["standard", "variant", "boundary"]
@@ -60,7 +65,7 @@ def _score_single_case(output_dict: dict, expected: dict) -> tuple[float, float]
 
     return accuracy, completeness
 
-
+@observe(as_type="evaluator", name="Golden Cases Evaluator")
 def evaluate_with_best_archetype(
     output: ContractChangeOutput, trace_id: str | None = None
 ) -> dict:
@@ -116,6 +121,11 @@ def evaluate_with_best_archetype(
     )
     selected_data = category_results[best_category]
 
+    trace_url = None
+    if trace_id:
+        host = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com").rstrip("/")
+        trace_url = f"{host}/trace/{trace_id}"
+
     if trace_id:
         try:
             langfuse_client.create_score(
@@ -153,4 +163,5 @@ def evaluate_with_best_archetype(
         "avg_completeness": selected_data["avg_completeness"],
         "cases_detailed": selected_data["cases"],
         "all_categories_summary": category_results,
+        "trace_url": trace_url,
     }

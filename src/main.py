@@ -1,5 +1,3 @@
-import sys
-from pathlib import Path
 from dotenv import load_dotenv
 from langfuse import observe, Langfuse
 
@@ -13,29 +11,29 @@ from src.evaluator import evaluate_with_best_archetype
 load_dotenv()
 langfuse_client = Langfuse()
 
-@observe(name="parse_original_contract")
+@observe(as_type="chain", name="parse_original_contract")
 def step_parse_original(path: str) -> str:
     text = parse_contract_image(path)
     return text
 
-@observe(name="parse_amendment_contract")
+@observe(as_type="chain", name="parse_amendment_contract")
 def step_parse_amendment(path: str) -> str:
     text = parse_contract_image(path)
     return text
 
-@observe(name="contextualization_agent")
+@observe(as_type="chain", name="contextualization_agent_step")
 def step_contextualize(original_text: str, amendment_text: str) -> tuple[ContextualizationAgent, str]:
     agent = ContextualizationAgent()
     context_map = agent.run(original_text, amendment_text)
     return agent, context_map
 
-@observe(name="extraction_agent")
+@observe(as_type="chain", name="extraction_agent_step")
 def step_extract(original_text: str, amendment_text: str, context_map: str) -> ContractChangeOutput:
     agent = ExtractionAgent()
     changes = agent.run(original_text, amendment_text, context_map)
     return changes
 
-@observe(name="contract-analysis")
+@observe(name="Contract Amendment Extraction Pipeline")
 def run_pipeline(original_path: str, amendment_path:str) -> ContractChangeOutput:
     """Pipeline principal de instrumentado con un span/trace raiz de LangFuse"""
 
@@ -65,6 +63,12 @@ def run_pipeline(original_path: str, amendment_path:str) -> ContractChangeOutput
         output=result,
         trace_id=trace_id,
     )
+
+    if metrics.get("trace_url"):
+        print("="*50)
+        print("🔗 Langfuse Trace Direct Link:")
+        print(f"   {metrics['trace_url']}")
+        print("="*50)
 
     langfuse_client.flush()
 

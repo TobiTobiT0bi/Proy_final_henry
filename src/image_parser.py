@@ -4,8 +4,11 @@ import os
 from openai import OpenAI
 from src.prompts import VISION_OCR_PROMPT
 
+from langfuse import observe, get_client
 
+langfuse = get_client()
 
+@observe(as_type="tool", name="Image Base64 Parser")
 def encode_image_to_base64(image_path: str) -> tuple[str, str]:
     """Valida la existencia de la imagen y la codifica a base64 junto con su MIME type"""
     if not os.path.exists(image_path):
@@ -20,14 +23,13 @@ def encode_image_to_base64(image_path: str) -> tuple[str, str]:
 
     return encoded_string, mime_type
 
+@observe(as_type="generation", name="GPT-4o Vision Processing")
 def parse_contract_image(image_path: str) -> str:
     """Lee una imagen de contrato/enmienda y extrae su texto completo mediante GPT-4o"""
     base64_image, mime_type = encode_image_to_base64(image_path)
     client = OpenAI()
 
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
+    messages=[
             {
                 "role": "user",
                 "content": [
@@ -40,8 +42,29 @@ def parse_contract_image(image_path: str) -> str:
                     },
                 ],
             }
-        ],
-        temperature=0.2
+        ]
+
+    langfuse.update_current_generation(
+        input=[{"type": "text", "text": VISION_OCR_PROMPT}, {"image_path": image_path}],
+        model="gpt-4o",
     )
 
-    return response.choices[0].message.content or ""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        temperature=0.2,
+    )
+
+    extracted_text = response.choices[0].message.content or ""
+
+    if response.usage:
+        langfuse.update_current_generation(
+            output=extracted_text,
+            usage_details={
+                "input": response.usage.prompt_tokens,
+                "output": response.usage.completion_tokens,
+                "total": response.usage.total_tokens,
+            },
+        )
+
+    return extracted_text

@@ -97,6 +97,41 @@ uv run python src/main.py data/test_contracts/documento_1__contrato.jpg data/tes
 
 ## 🛠️ Decisiones Técnicas y Evaluaciones
 
-* **Aislamiento Multi-agente:** Separar la comparación contextual (Agente 1) de la estructuración en Pydantic (Agente 2) reduce alucinaciones y mejora la consistencia del output final.
-* **Métrica de Extracción (Accuracy):** El evaluador analiza si GPT-4o Vision fue capaz de poblar campos con contenido válido (discriminando `None`, respuestas evasivas como `"N/A"` o cadenas vacías).
-* **Trazabilidad:** Toda llamada a GPT-4o e iteración de agentes genera Spans jerárquicos en Langfuse para auditoría de costos, latencia y observabilidad de prompts.
+### 1. Arquitectura Multi-Agente Desacoplada
+En lugar de solicitar la extracción y estructuración directa en un solo paso (Single-Prompt), implementamos una arquitectura de dos agentes especializados:
+* **Agente 1 (Contextualización):** Se enfoca puramente en la capacidad analítica y semántica del modelo GPT-4o para comparar cláusula por cláusula las diferencias contractuales.
+* **Agente 2 (Extracción Estructurada):** Toma el análisis cualitativo previa y se enfoca exclusivamente en traducir esa información al esquema requerido.
+Este desacoplamiento reduce drásticamente las alucinaciones y omisiones de cláusulas en contratos complejos.
+
+---
+
+### 2. Garantía de Esquema con Pydantic y Structured Outputs (`json_schema`)
+Para garantizar que la salida sea 100% interoperable con sistemas downstream y cumpla con el modelo `ContractChangeOutput`, implementamos **Structured Outputs nativo de OpenAI**:
+* **Garantía desde el API Call:** En lugar de relying únicamente en "prompt engineering" o parseos frágiles con expresiones regulares, configuramos el parámetro `response_format` en la llamada a la API pasando el esquema JSON generado por Pydantic.
+* **Strict Validation:** Esto obliga al modelo a nivel de decodificación de tokens a generar una respuesta que respete exactamente los campos (`contract_type`, `modified_clauses`, `summary_of_the_change`), evitando campos nulos no deseados o estructuras corruptas.
+
+---
+
+### 3. Evaluación Guiada por Golden Cases
+Para medir la efectividad real del pipeline en un entorno controlado y reproducible, diseñamos un dataset de referencia (*Golden Cases*):
+* **Por qué Golden Cases:** En tareas de PLN y visión con contratos, la evaluación no se puede limitar a saber si la API devolvió un status 200. Necesitamos verificar que la extracción contenga exactamente las cláusulas modificadas reales (ground truth).
+* **Cómo lo implementamos:** Creamos pares de prueba (`data/test_contracts/`) con sus correspondientes salidas esperadas en `data/golden_cases/`. El `Evaluator` ejecuta comparaciones sobre cada campo para calcular dos métricas clave:
+  1. **Accuracy / Tasa de Extracción:** Mide el porcentaje de precisión en la identificación correcta de las cláusulas modificadas y tipo de contrato.
+  2. **Completeness (Cobertura del Esquema):** Evalúa si el modelo pobló con contenido sustancial todos los campos requeridos, descartando respuestas evasivas (como `"N/A"`, `"no especificado"` o cadenas vacías).
+
+---
+
+### 4. Observabilidad y Trazabilidad con Langfuse
+La integración de **Langfuse** nos otorga visibilidad total sobre la ejecución interna del pipeline multi-agente, resolviendo las limitaciones típicas del desarrollo con LLMs a ciegas.
+
+#### ¿Por qué usar Langfuse vs. No Usarlo?
+
+| Aspecto | Sin Observabilidad (Logs tradicionales) | Con Langfuse |
+| :--- | :--- | :--- |
+| **Visibilidad de Flujo** | Imprime texto plano en consola (`print()`), perdiendo la relación jerárquica de qué agente llamó a qué subproceso. | **Spans y Traces Jerárquicos:** Árbol de visualización en tiempo real que muestra el tiempo y resultado exacto del Parser Vision, Agente 1 y Agente 2. |
+| **Control de Costos y Tokens** | Dificultad para saber cuántos tokens consumió el procesamiento multimodal de las imágenes frente a las llamadas de texto. | **Métricas por Llamada:** Desglose automático de tokens de entrada/salida (incluyendo detalle de tokens de visión) y costo total estimado por contrato. |
+| **Depuración de Prompts** | Modificar un prompt requiere buscar en el código y comparar manualmente logs previos. | **Prompt Management & History:** Permite auditoría de los prompts exactos enviados a la API en cada ejecución y su latencia asociada. |
+| **Evaluación Continua** | Medir calidad requiere scripts externos aislados. | **Score Ingestion (`create_score`):** El resultado del `Evaluator` (Accuracy) se vincula directamente al Trace en el dashboard de Langfuse. |
+
+#### Ejemplo práctico de superioridad:
+En un entorno sin observabilidad, si el Agente 2 falla al estructurar el JSON, es muy difícil determinar si la falla se debió a un mal análisis visual del *Image Parser*, a que el Agente 1 omitió una cláusula en su resumen, o a un error de tipado del Agente 2. Con **Langfuse**, abrimos el *Trace* de la ejecución y podemos inspeccionar el *input/output* exacto de cada Span individualmente en segundos, aislando el error al instante.

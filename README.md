@@ -46,11 +46,10 @@ Este proyecto utiliza **[uv](https://github.com/astral-sh/uv)** como gestor de p
 
 ### 1. Setup Inicial
 
-Para configurar el entorno por primera vez tras clonar el repositorio, simplemente ejecutá:
+Para configurar el entorno por primera vez tras clonar el repositorio, simplemente ejecutá (EN BASH):
 
 ```bash
 make setup
-
 ```
 
 Este comando automatiza los siguientes pasos:

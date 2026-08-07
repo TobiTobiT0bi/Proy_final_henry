@@ -1,0 +1,32 @@
+[
+  {
+    "id": "case_1",
+    "sections_changed": [],
+    "topics_touched": [],
+    "summary_of_the_change": "No se detectaron modificaciones sustanciales ni cambios estructurales entre el contrato original y el documento presentado."
+  },
+  {
+    "id": "case_2",
+    "sections_changed": ["Cláusula Ilegible / No Identificada"],
+    "topics_touched": ["Indeterminado"],
+    "summary_of_the_change": "Documento con baja calidad visual. Se detecta cambio de monto pero la sección de origen no es completamente legible."
+  },
+  {
+    "id": "case_3",
+    "sections_changed": ["Firmas y Anexos"],
+    "topics_touched": ["Representación Legal"],
+    "summary_of_the_change": "Se ratifica el contrato original agregando únicamente la firma de un nuevo apoderado sin cambios de cláusulas."
+  },
+  {
+    "id": "case_4",
+    "sections_changed": ["Fe de Erratas - Encabezado"],
+    "topics_touched": ["Aclaraciones Menores"],
+    "summary_of_the_change": "Corrección tipográfica menor en la razón social de la parte contratante."
+  },
+  {
+    "id": "case_5",
+    "sections_changed": ["Anexo General"],
+    "topics_touched": ["Documentación Adjunta"],
+    "summary_of_the_change": "El documento adjunto corresponde a una enmienda incompleta o borrador sin validez formal declarada."
+  }
+]

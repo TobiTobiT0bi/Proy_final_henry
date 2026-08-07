@@ -1,0 +1,32 @@
+[
+  {
+    "id": "case_1",
+    "sections_changed": ["Anexo A - Inciso 2", "Cláusula Novena"],
+    "topics_touched": ["Confidencialidad", "Jurisdicción y Penalidades"],
+    "summary_of_the_change": "Se modifica la jurisdicción de arbitraje y se incrementa la penalidad diaria por incumplimiento de confidencialidad."
+  },
+  {
+    "id": "case_2",
+    "sections_changed": ["Sección 14 - Rescisión Anticipada"],
+    "topics_touched": ["Terminación Contratual", "Indemnización"],
+    "summary_of_the_change": "Se incorpora la opción de rescisión sin causa previo aviso de 60 días con penalidad del 10% del saldo pendiente."
+  },
+  {
+    "id": "case_3",
+    "sections_changed": ["Apéndice B - Ajuste por Inflación (IPC)"],
+    "topics_touched": ["Indexación", "Ajuste Tarifario"],
+    "summary_of_the_change": "Se sustituye la tasa fija de ajuste anual por una actualización trimestral vinculada al índice IPC."
+  },
+  {
+    "id": "case_4",
+    "sections_changed": ["Cláusula de Propiedad Intelectual - Subsección 3.1"],
+    "topics_touched": ["Licenciamiento", "Derechos de Autor"],
+    "summary_of_the_change": "Se otorgan licencias no exclusivas adicionando el territorio de América Latina para el uso de software."
+  },
+  {
+    "id": "case_5",
+    "sections_changed": ["Cláusula Décimo Cuarta - Caso Fortuito"],
+    "topics_touched": ["Fuerza Mayor", "Responsabilidad Legal"],
+    "summary_of_the_change": "Se redefinen los eventos de Fuerza Mayor incluyendo expresamente interrupciones por ciberataques."
+  }
+]

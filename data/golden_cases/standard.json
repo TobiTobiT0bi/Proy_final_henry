@@ -1,0 +1,32 @@
+[
+  {
+    "id": "case_1",
+    "sections_changed": ["Cláusula Tercera", "Sección 5"],
+    "topics_touched": ["Precio", "Plazos de Pago"],
+    "summary_of_the_change": "Se actualiza el canon de arrendamiento y se extiende el plazo límite de pago a los días 10 de cada mes."
+  },
+  {
+    "id": "case_2",
+    "sections_changed": ["Cláusula Primera - Duración"],
+    "topics_touched": ["Plazo del Contrato", "Vencimiento"],
+    "summary_of_the_change": "Se prorroga la vigencia del contrato por un período adicional de 12 meses."
+  },
+  {
+    "id": "case_3",
+    "sections_changed": ["Cláusula Quinta - Depósito de Garantía"],
+    "topics_touched": ["Garantías", "Montos"],
+    "summary_of_the_change": "Se incrementa el monto del depósito de garantía exigido para cubrir la nueva tarifa anual."
+  },
+  {
+    "id": "case_4",
+    "sections_changed": ["Anexo 1 - Alcance de Servicios"],
+    "topics_touched": ["Entregables", "SLA"],
+    "summary_of_the_change": "Se modifican los tiempos de respuesta del soporte técnico a un máximo de 4 horas."
+  },
+  {
+    "id": "case_5",
+    "sections_changed": ["Cláusula Décima - Domicilio de Notificaciones"],
+    "topics_touched": ["Notificaciones", "Datos de Contacto"],
+    "summary_of_the_change": "Se actualiza la dirección física y el correo electrónico oficial para la recepción de notificaciones legales."
+  }
+]
